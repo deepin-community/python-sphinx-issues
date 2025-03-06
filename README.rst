@@ -2,8 +2,13 @@
 sphinx-issues
 =============
 
-.. image:: https://travis-ci.org/sloria/sphinx-issues.svg?branch=master
-    :target: https://travis-ci.org/sloria/sphinx-issues
+.. image:: https://badgen.net/pypi/v/sphinx-issues
+    :target: https://pypi.org/project/sphinx-issues/
+    :alt: PyPI badge
+
+.. image:: https://github.com/sloria/sphinx-issues/actions/workflows/build-release.yml/badge.svg
+    :target: https://github.com/sloria/sphinx-issues/actions/workflows/build-release.yml
+    :alt: Build status
 
 A Sphinx extension for linking to your project's issue tracker. Includes roles for linking to issues, pull requests, user profiles, with built-in support for GitHub (though this works with other services).
 
@@ -20,7 +25,11 @@ Installation and Configuration
     pip install sphinx-issues
 
 
-Add ``sphinx_issues`` to ``extensions`` in your ``conf.py``. If your project is on GitHub, add the ``issues_github_path`` config variable. Otherwise, use ``issues_uri`` and ``issues_pr_uri``.
+Add ``sphinx_issues`` to ``extensions`` in your ``conf.py``.
+
+The extension has default values for GitHub projects.
+Simply set the add the ``issues_default_group_project`` config variable and you are good
+to go:
 
 .. code-block:: python
 
@@ -32,16 +41,47 @@ Add ``sphinx_issues`` to ``extensions`` in your ``conf.py``. If your project is 
         "sphinx_issues"
     ]
 
-    # Github repo
+    # Path to GitHub repo {group}/{project}  (note that `group` is the GitHub user or organization)
     issues_github_path = "sloria/marshmallow"
 
-    # equivalent to
-    issues_uri = "https://github.com/sloria/marshmallow/issues/{issue}"
-    issues_pr_uri = "https://github.com/sloria/marshmallow/pull/{pr}"
-    issues_commit_uri = "https://github.com/sloria/marshmallow/commit/{commit}"
+    # which is the equivalent to:
+    issues_uri = "https://github.com/{group}/{project}/issues/{issue}"
+    issues_prefix = "#"
+    issues_pr_uri = "https://github.com/{group}/{project}/pull/{pr}"
+    issues_pr_prefix = "#"
+    issues_commit_uri = "https://github.com/{group}/{project}/commit/{commit}"
+    issues_commit_prefix = "@"
+    issues_user_uri = "https://github.com/{user}"
+    issues_user_prefix = "@"
 
-Usage
-*****
+The extension is very configurable and can be used with any kind of
+issue tracker. Here is how you could configure it for use
+with a custom hosed GitLab instance:
+
+.. code-block:: python
+
+    # docs/conf.py
+
+    # ...
+    extensions = [
+        # ...
+        "sphinx_issues"
+    ]
+
+    #  Default repo {group}/{project} of gitlab project
+    issues_default_group_project = "myteam/super_great_project"
+    issues_uri = "https://gitlab.company.com/{group}/{project}/-/issues/{issue}"
+    issues_prefix = "#"
+    issues_pr_uri = "https://gitlab.company.com/{group}/{project}/-/merge_requests/{pr}"
+    issues_pr_prefix = "!"
+    issues_commit_uri = "https://gitlab.company.com/{group}/{project}/-/commit/{commit}"
+    issues_commit_prefix = "@"
+    issues_user_uri = "https://gitlab.company.com/{user}"
+    issues_user_prefix = "@"
+
+
+Usage inside the documentation
+******************************
 
 Use the ``:issue:``  and ``:pr:`` roles in your docs like so:
 
@@ -56,7 +96,14 @@ Use the ``:issue:``  and ``:pr:`` roles in your docs like so:
     See PR :pr:`58`
 
 
-Use the ``:user:`` role in your docs to link to user profiles (Github by default, but can be configured via the ``issues_user_uri`` config variable).
+Use the ``:user:`` role in your docs to link to user profiles (GitHub by default, but can be configured via the ``issues_user_uri`` config variable).
+
+
+Use the ``:commit:`` role to link to commits.
+
+.. code-block:: rst
+
+    Fixed in :commit:`6bb9124d5e9dbb2f7b52864c3d8af7feb1b69403`.
 
 .. code-block:: rst
 
@@ -68,23 +115,24 @@ You can also use explicit names if you want to use a different name than the git
 
     This change is due to :user:`Andreas Mueller <amueller>`.
 
+The syntax ``:role:`My custom title <target>``` works for all roles of this extension.
 
-Use the ``:commit:`` role to link to commits.
-
-.. code-block:: rst
-
-    Fixed in :commit:`6bb9124d5e9dbb2f7b52864c3d8af7feb1b69403`.
-
-Use the ``:cve:`` role to link to CVEs on https://cve.mitre.org.
+It can be also used in combination with a list:
 
 .. code-block:: rst
 
-    :cve:`CVE-2018-17175` - Addresses possible vulnerability when...
+    Fix bad bug :issue:`123, (Duplicate) <199>`
+
+Use the ``:pypi:`` role to link to PyPI on https://pypi.org.
+
+.. code-block:: rst
+
+    :pypi:`sphinx-issues` - A Sphinx extension for linking to your project's issue tracker.
 
 Credits
 *******
 
-Credit goes to Jeff Forcier for his work on the `releases <https://github.com/bitprophet/releases>`_ extension, which is a full-featured solution for generating changelogs. I just needed a quick way to reference Github issues in my docs, so I yoinked the bits that I needed.
+Credit goes to Jeff Forcier for his work on the `releases <https://github.com/bitprophet/releases>`_ extension, which is a full-featured solution for generating changelogs. I just needed a quick way to reference GitHub issues in my docs, so I yoinked the bits that I needed.
 
 License
 *******
@@ -94,6 +142,50 @@ MIT licensed. See the bundled `LICENSE <https://github.com/sloria/sphinx-issues/
 
 Changelog
 *********
+
+5.0.0 (2024-10-11)
+------------------
+
+- Remove `:cwe:` and `:cve:` roles, as these are officially included in Sphinx>=8.1.0.
+- Support Python 3.9-3.13. Python 3.8 is no longer supported.
+
+4.1.0 (2024-04-14)
+------------------
+
+- Add `:pypi:` role for linking to PyPI projects (`#144 <https://github.com/sloria/sphinx-issues/issues/144>`_).
+  Thanks @shenxianpeng for the suggestion and PR.
+
+4.0.0 (2024-01-19)
+------------------
+
+- Default to linking GH Sponsors for the :user: role (`#129 <https://github.com/sloria/sphinx-issues/issues/129>`_).
+  Thanks @webknjaz for the suggestion.
+- Support Python 3.8-3.12. Older versions are no longer supported.
+- *Backwards-incompatible*: Remove ``__version__``, ``__author__``, and ``__license__`` attributes.
+  Use ``importlib.metadata`` to read this metadata instead.
+
+3.0.1 (2022-01-11)
+------------------
+
+- Fix regression from 3.0.0: `exception: 'in <string>' requires string as left operand, not type`.
+
+3.0.0 (2022-01-10)
+------------------
+
+- The `:commit:` role now outputs with an `@` prefix.
+- Add configuration options for changing prefixes.
+- Allow `{group}` to be specified within `issues_uri`, `issues_pr_uri`, `issues_commit_uri`, and 
+
+2.0.0 (2022-01-01)
+------------------
+
+- Drop support for Python 2.7 and 3.5.
+- Test against Python 3.8 to 3.10.
+- Add ``:cwe:`` role for linking to CVEs on https://cwe.mitre.org.
+  Thanks @hugovk for the PR.
+- Add support for custom urls and separators `Issue #93 <https://github.com/sloria/sphinx-issues/issues/93>`_
+- Allow custom titles for all roles `Issue #116 <https://github.com/sloria/sphinx-issues/issues/116>`_
+- Added setting `issues_default_group_project` as future replacement of `issues_github_path`, to reflect the now to universal nature of the extension
 
 1.2.0 (2018-12-26)
 ------------------
@@ -132,7 +224,7 @@ Changelog
 0.2.0 (2014-12-22)
 ------------------
 
-- Add ``:user:`` role for linking to Github user profiles.
+- Add ``:user:`` role for linking to GitHub user profiles.
 
 0.1.0 (2014-12-21)
 ------------------

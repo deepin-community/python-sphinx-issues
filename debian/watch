@@ -1,3 +1,8 @@
 version=4
-opts=filenamemangle=s/.+\/v?(\d\S+)\.tar\.gz/sphinx-issues-$1\.tar\.gz/ \
-  https://github.com/sloria/sphinx-issues/tags .*/v?(\d\S+)\.tar\.gz
+
+opts="mode=git, \
+      compression=gz, \
+      uversionmangle=s/(\d)[_\.\-\+]?((alpha|beta|dev|pre|RC|rc)\.?\d*)$/$1~$2/, \
+      dversionmangle=s/\+ds(\.?\d+)?$//" \
+https://github.com/sloria/sphinx-issues.git \
+     refs/tags/@ANY_VERSION@

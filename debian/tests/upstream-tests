@@ -1,0 +1,22 @@
+#!/bin/sh
+set -efu
+
+export LC_ALL=C.UTF-8
+
+cp -a tests ${AUTOPKGTEST_TMP}
+
+for py3vers in $(py3versions -s); do
+    echo
+    echo "***************************"
+    echo "*** Testing with ${py3vers}"
+    echo "***************************"
+    echo
+    cd ${AUTOPKGTEST_TMP} && \
+        echo "Content of current working folder:\n" && \
+        ls -la && \
+        echo "Running tests...\n" && \
+        PYTHONPATH=. ${py3vers} -m pytest tests && \
+        rm -rf .pytest_cache || exit 1
+done
+
+exit 0
